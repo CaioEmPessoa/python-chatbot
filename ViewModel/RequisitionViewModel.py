@@ -1,5 +1,6 @@
 import openai
-openai.api_key = "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"
+#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
+openai.api_key = "Fernando"
 
 print('Diga algo pro chatgpt: ')
 ask = input('>> ')
