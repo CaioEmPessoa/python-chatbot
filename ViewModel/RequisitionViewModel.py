@@ -9,18 +9,18 @@ from View import PrimeiraTelaView as PTV
 
 openai.api_key = "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"
 
-instancia = PTV.App()
-
-def resposta(entry):
-    get_entry = entry
+def responder():
+    entry = PTV.get_entry
+    print(entry)
 
     # pega oq ta escrito na textbox
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "user", "content": get_entry}
+            {"role": "user", "content": entry}
         ]
     )
 
-    PTV.instancia.textbox("0.0", ('chatgpt: ' + completion.choices[0].message.content))
+    print(str('Chatgpt: ' + completion.choices[0].message.content))
+
 
