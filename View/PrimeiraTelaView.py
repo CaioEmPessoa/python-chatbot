@@ -29,14 +29,14 @@ class App(ctk.CTk):
         self.textbox.grid(row=0, column=0, columnspan=2, pady=15, padx=20, sticky="nsew")
         self.textbox.configure(state="disabled") # not allow to edit it
 
-        # Create an button and shows it
-        self.button = ctk.CTkButton(master=self, text="Send", command=VM.heloWorld)
-        self.button.grid(row=1, column=1, pady=10, padx=10)
-
         # Create and entry
         self.entry = ctk.CTkEntry(master=self, placeholder_text="Fale algo... ",
                                 width=180, corner_radius=10)
         self.entry.grid(row=1, column=0, padx=10, pady=5)
+
+        # Create an button and shows it
+        self.button = ctk.CTkButton(master=self, text="Send", command=lambda: VM.resposta(self.entry.get()))
+        self.button.grid(row=1, column=1, pady=10, padx=10)
 
 if __name__ == "__main__":
     root = App()
