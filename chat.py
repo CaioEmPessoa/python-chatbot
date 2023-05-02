@@ -8,7 +8,7 @@ import os
 openai.api_key = "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"
 
 #janela de config
-class ConfigWindow(ctk.CTk):
+class ConfigWindow(ctk.CTkToplevel):
     def __init__(self, app):
         super().__init__()
 
@@ -20,16 +20,20 @@ class ConfigWindow(ctk.CTk):
 
         def apply():
 
-            fonte = self.font_box.get()
+            # Pega o valor escolhido nas caixas
+            self.fonte = self.font_box.get()
+            self.sans = self.checkbox.get()
+            self.tema = self.temas_box.get()
 
-            sans = self.checkbox.get()
+            # Altera o valor que aparecerá como padrão na proxima
+            self.font_box.set(self.fonte)
+            self.checkbox.toggle()
+            self.temas_box.set(self.tema)
 
-            tema = self.temas_box.get()
+            app.change_font(self.sans)
+            app.change_font(self.fonte)
 
-            app.change_font(sans)
-            app.change_font(fonte)
-
-
+            app.config_window.destroy()
 
         # Labels 
         self.temas_label = ctk.CTkLabel(master=self, text="Temas:")
@@ -54,18 +58,26 @@ class ConfigWindow(ctk.CTk):
         self.font_box.grid(row=1, column=1, padx=10, pady=10)
 
         # Checkbox
-
-        self.checkbox = ctk.CTkCheckBox(master=self, text="", onvalue="on", offvalue="off")
+        self.checkbox = ctk.CTkCheckBox(master=self, text="",
+                                         onvalue="on", offvalue="off")
         self.checkbox.grid(row=2, column=1, padx=10, pady=10)
-
-
         # >---------------------------------- END CaixasEscolha
 
         self.apply_button = ctk.CTkButton(master=self, text="Aplicar.", width=5, command=apply)
         self.apply_button.grid(row=5, column=1, columnspan=3, sticky="S", pady=10)
 
+
 # Criando a janela
 class App(ctk.CTk):
+
+    def fechar(self):
+        root.quit()
+
+    def call_config(self):
+        if self.config_window is None or not self.config_window.winfo_exists():
+            self.config_window = ConfigWindow(self)  # create window if its None or destroyed
+            self.config_window.grab_set()
+
 
     def change_font(self, choice):
 
@@ -94,6 +106,8 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        self.config_window = None
+
         # Modes: system (default), light, dark
         ctk.set_appearance_mode("Dark")
         # Themes: blue (default), dark-blue, green
@@ -103,12 +117,14 @@ class App(ctk.CTk):
         self.title('Chat with Alibabot')
 
         self.minsize(300, 300)
-        self.maxsize(700, 750)
+        self.maxsize(750, 950)
 
-        self.grid_rowconfigure(1, weight=1)  # configure grid system
+        self.grid_rowconfigure((1,2), weight=1)  # configure grid system
         self.grid_columnconfigure((0, 1), weight=1)
         
 
+
+        # Perguntas e Respostas Escritas <-------------------------------------------------------
         def resposta():
             #pega o que ta escrito na entrada
             entry = self.entry.get()
@@ -121,7 +137,7 @@ class App(ctk.CTk):
             )
 
             bot_msg = str('Alibabot: ' + completion.choices[0].message.content)
-            self.textbox.configure(state="normal") # not allow to edit it
+            self.textbox.configure(state="normal") # allow to edit it
             self.textbox.insert("end", bot_msg + '\n\n')
             self.textbox.configure(state="disabled", text_color='white') # not allow to edit it
 
@@ -137,13 +153,8 @@ class App(ctk.CTk):
 
             self.textbox.configure(state="disabled", text_color='red') # not allow to edit it
             resposta()
+        # --------------------------------------------------> END Perguntas e Respostas Escritas
 
-        def fechar(ss):
-            self.quit()
-
-        def call_config():
-                config = ConfigWindow(app=self)
-                config.mainloop()
 
         # Image Config ------------------------------------------------------------------------------------------------<
         # Import Location of the code for images
@@ -151,8 +162,11 @@ class App(ctk.CTk):
 
         # Images of the GUI
         self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.ANTIALIAS))
-        
+
+        self. off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+
         # >-------------------------------------------------------------------------------------------- END Image Config
+
 
         # Buttons and Entrys ------------------------------------------------------<
         # Create textbox and shows it
@@ -165,20 +179,28 @@ class App(ctk.CTk):
         self.entry = ctk.CTkEntry(master=self, placeholder_text="Fale algo... ",
                                 width=240, corner_radius=10)
         
-        self.entry.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        self.entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
 
         # Create an button and shows it
         self.send_button = ctk.CTkButton(master=self, text="Send", 
-                                         corner_radius=10, width=10, 
+                                         corner_radius=10, width=15, 
                                          command=lambda: pergunta('x'))
 
-        self.send_button.grid(row=2, column=1, pady=10, padx=10, sticky="ew")
+        self.send_button.grid(row=2, column=2, pady=10, padx=10, sticky="ew")
+
+
+        self.mic_button = ctk.CTkButton(master=self, text="",
+                                           width=5, image=self.off_mic_icon, 
+                                           fg_color="#282424", hover_color="gray",
+                                           command=self.call_config)
+        self.mic_button.grid(row=2, column=0)
+
 
         # Config Button
         self.config_button = ctk.CTkButton(master=self, text="", 
                                            width=10, image=self.config_icon, 
                                            fg_color="#282424", hover_color="gray",
-                                           command=call_config)
+                                           command=self.call_config)
 
         self.config_button.grid(row=0, column=0, sticky="W")
 
@@ -186,7 +208,7 @@ class App(ctk.CTk):
 
         # bind keys -------------------<
         self.bind('<Return>', pergunta)
-        self.bind('<Escape>', fechar)
+        self.bind('<Escape>', App.fechar)
         # >----------------END bind keys
 
 if __name__ == "__main__":
