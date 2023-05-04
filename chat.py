@@ -1,6 +1,10 @@
 
 import customtkinter as ctk
 import tkinter as tk
+import threading
+from queue import Queue
+from pvrecorder import PvRecorder
+import wave, struct
 import openai
 from PIL import Image, ImageTk
 import os
@@ -16,7 +20,7 @@ class ConfigWindow(ctk.CTkToplevel):
         self.title('Config Alibabot')
 
         self.minsize(300, 300)
-        self.maxsize(300, 300)
+        self.maxsize(450, 300)
 
         def apply():
 
@@ -24,47 +28,75 @@ class ConfigWindow(ctk.CTkToplevel):
             self.fonte = self.font_box.get()
             self.sans = self.checkbox.get()
             self.tema = self.temas_box.get()
+            self.device = self.devices_box.get()
 
             # Altera o valor que aparecerá como padrão na proxima
             self.font_box.set(self.fonte)
             self.checkbox.toggle()
             self.temas_box.set(self.tema)
 
+            # Troca a fonte
             app.change_font(self.sans)
             app.change_font(self.fonte)
 
+            # Troca o tema
+            app.change_theme(self.tema)
+
+            # Troca o dispositivo
+            self.mic = self.device[0]
+            self.recorder = PvRecorder(device_index=-int(self.mic), frame_length=512)
+
+
+            # Fecha a aba de config
             app.config_window.destroy()
+
+        mic_list = []
+        for mic in PvRecorder.get_audio_devices():
+            start_index = mic.find('(') + 1
+            end_index = mic.find(')')
+
+            mic_number = PvRecorder.get_audio_devices().index(mic)
+            mic_list.append(str(mic_number) + " - " + mic[start_index:end_index])
 
         # Labels 
         self.temas_label = ctk.CTkLabel(master=self, text="Temas:")
-        self.temas_label.grid(row=0, column=0, padx=10)
+        self.temas_label.grid(row=0, column=0, padx=10, sticky="W")
 
         self.fonte_label = ctk.CTkLabel(master=self, text="Fonte:")
-        self.fonte_label.grid(row=1, column=0, padx=10)
+        self.fonte_label.grid(row=1, column=0, padx=10, sticky="W")
 
-        self.sans_label = ctk.CTkLabel(master=self, text="Comic Sans?")
-        self.sans_label.grid(row=2, column=0, padx=10)
+        self.sans_label = ctk.CTkLabel(master=self, text="Comic Sans:")
+        self.sans_label.grid(row=2, column=0, padx=10, sticky="W")
+
+        self.devices_label = ctk.CTkLabel(master=self, text="Microfone: ")
+        self.devices_label.grid(row=3, column=0, padx=10, sticky="W")
 
         # Caixas de escolha----- -------------------------------<
         # Caixa dos temas
         self.temas_box = ctk.CTkOptionMenu(master=self,
                                        values=["Escuro (Padrão)", "Claro", 
                                                "Metal","Hello Kitty"])
-        self.temas_box.grid(row=0, column=1, padx=10, pady=10)
+        self.temas_box.grid(row=0, column=1, padx=10, pady=10, sticky="W")
 
         # Caixa da fonte
         self.font_box = ctk.CTkOptionMenu(master=self,
                                        values=["Pequena", "Média", "Grande"])
-        self.font_box.grid(row=1, column=1, padx=10, pady=10)
+        self.font_box.grid(row=1, column=1, padx=10, pady=10, sticky="W")
+
+        # Mic Devices
+        self.devices_box = ctk.CTkOptionMenu(master=self,
+                                            values=mic_list)
+        self.devices_box.grid(row=3, column=1, padx=10, pady=10, sticky="W")
 
         # Checkbox
         self.checkbox = ctk.CTkCheckBox(master=self, text="",
                                          onvalue="on", offvalue="off")
-        self.checkbox.grid(row=2, column=1, padx=10, pady=10)
+        self.checkbox.grid(row=2, column=1, padx=10, pady=10, sticky="W")
+        
         # >---------------------------------- END CaixasEscolha
 
         self.apply_button = ctk.CTkButton(master=self, text="Aplicar.", width=5, command=apply)
-        self.apply_button.grid(row=5, column=1, columnspan=3, sticky="S", pady=10)
+        self.apply_button.grid(row=5, column=1, columnspan=3, sticky="W", pady=10)
 
 
 # Criando a janela
@@ -81,10 +113,8 @@ class App(ctk.CTk):
 
     def change_font(self, choice):
 
-        print("Fonte Escolhida: " + choice)
 
         if choice == "on":
-            print("sans")
             self.fonte = 'Comic Sans MS'
 
         if choice == "off":
@@ -93,19 +123,97 @@ class App(ctk.CTk):
         match choice:
             case "Pequena":
                 self.textbox.configure(state="disabled", font=(self.fonte, 13))
-                print("trocada " + self.fonte)
-            
+
             case "Média":
                 self.textbox.configure(state="disabled", font=(self.fonte, 18))
-                print("trocada " + self.fonte)
 
             case "Grande":
                 self.textbox.configure(state="disabled", font=(self.fonte, 30))
-                print("trocada " + self.fonte)
 
+    def change_theme(self, choice):
+        match choice:
+
+            case "Claro":
+                # Modes: system (default), light, dark
+                ctk.set_appearance_mode("Light")
+                # Themes: blue (default), dark-blue, green
+                ctk.set_default_color_theme("dark-blue")
+                self.mic_button.configure(fg_color="#ebebeb")
+                self.config_button.configure(fg_color="#ebebeb")
+
+                # Troca a letra da fonte, pra branca
+                self.text_color = 'black'
+                self.textbox.configure(state="disabled", text_color=self.text_color)
+
+
+            case "Escuro (Padrão)":
+                # Modes: system (default), light, dark
+                ctk.set_appearance_mode("Dark")
+                # Themes: blue (default), dark-blue, green
+                ctk.set_default_color_theme("dark-blue")
+                self.mic_button.configure(fg_color="#282424")
+                self.config_button.configure(fg_color="#282424")
+
+                
+                self.text_color = 'white'
+                self.textbox.configure(state="disabled", text_color=self.text_color)
+
+
+    # Audio Things ------------------------------------------------------------<
+    def speech_text(self):
+        print("Traduzindo... ")
+        audio_file = open("audio.wav", "rb") # Lê o "audio.wav"
+        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        print(transcript.text)
+        self.entry.insert(0, str(transcript.text))
+
+    def toggle_recording(self):
+        
+
+        if not self.recording: # Se nao está gravando
+            self.recording = True # Esta gravando
+
+            # Muda o botão pro vermelho
+            self.mic_button.configure(image=self.on_mic_icon)
+
+            # Começa a thread de gravar
+            self.record_audio_thread = threading.Thread(target=self.record_audio)
+            self.record_audio_thread.start()
+            
+        # Se esta gravando
+        else:
+            self.recording = False  # Não está gravando
+
+            # Muda o ícone pro normal
+            self.mic_button.configure(image=self.off_mic_icon)
+
+            # Para de gravar
+            self.recorder.stop()
+
+            # salva o arquivo
+            with wave.open(self.store_path, 'w') as f:
+                f.setparams((1, 2, 16000, 512, "NONE", "NONE"))
+                f.writeframes(struct.pack("h" * len(self.audio), *self.audio))
+
+            self.audio = []
+            self.speech_text() # chama pra traduzir
+
+    def record_audio(self):
+
+        # Começa a gravar realmente
+        self.recorder.start()
+        #Enquanto grava, manda cada frame dela pra lista "audio"
+        while self.recording:
+            frame = self.recorder.read()
+            self.audio.extend(frame)
+
+        self.recorder.stop()
+    # >------------------------------------------------- END Audio Things
+
+
+    # Root Config ----------------------------------------------------------<
     def __init__(self):
         super().__init__()
-
         self.config_window = None
 
         # Modes: system (default), light, dark
@@ -116,44 +224,59 @@ class App(ctk.CTk):
         # Configure the window
         self.title('Chat with Alibabot')
 
-        self.minsize(300, 300)
+        self.minsize(370, 300)
         self.maxsize(750, 950)
 
-        self.grid_rowconfigure((1,2), weight=1)  # configure grid system
+        self.grid_rowconfigure((1), weight=1)  # configure grid system
         self.grid_columnconfigure((0, 1), weight=1)
-        
 
+    # >------------------------------------------------------ END Root Config 
 
-        # Perguntas e Respostas Escritas <-------------------------------------------------------
+    # Set Values to Audio Things and text color -----------------------<
+
+        self.mic = 1 # Change the mic
+        self.recorder = PvRecorder(device_index=-self.mic, frame_length=512)
+
+        self.audio = [] # on what the audio will be stored
+
+        self.store_path = "audio.wav" # where the audio will be stored
+
+        self.recording = False
+
+        self.text_color = 'white'
+    # >---------------------------- END Setting Values to Audio Things
+
+        # Perguntas e Respostas Escritas -------------------------------------------------------<
         def resposta():
             #pega o que ta escrito na entrada
-            entry = self.entry.get()
+            entry_str = self.entry.get()
             # pega oq ta escrito na textbox
             completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "user", "content": entry}
+                    {"role": "user", "content": entry_str}
                 ]
             )
 
             bot_msg = str('Alibabot: ' + completion.choices[0].message.content)
             self.textbox.configure(state="normal") # allow to edit it
             self.textbox.insert("end", bot_msg + '\n\n')
-            self.textbox.configure(state="disabled", text_color='white') # not allow to edit it
+            self.textbox.configure(state="disabled", text_color=self.text_color) # not allow to edit it
+            self.entry.delete(first_index=0, last_index=len(entry_str))
 
         def pergunta(x):
             #pega o que ta escrito na entrada
-            entry = self.entry.get()
+            entry_str = self.entry.get()
             
             # Monta a mensagem
             user = 'Usuário' + ': '
 
             self.textbox.configure(state="normal") # not allow to edit it
-            self.textbox.insert("end", f'{user} {entry} \n')
+            self.textbox.insert("end", f'{user} {entry_str} \n')
 
             self.textbox.configure(state="disabled", text_color='red') # not allow to edit it
             resposta()
-        # --------------------------------------------------> END Perguntas e Respostas Escritas
+        # >-------------------------------------------------- END Perguntas e Respostas Escritas
 
 
         # Image Config ------------------------------------------------------------------------------------------------<
@@ -163,7 +286,9 @@ class App(ctk.CTk):
         # Images of the GUI
         self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.ANTIALIAS))
 
-        self. off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+        self.off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+
+        self.on_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic_on.png").resize((30,30), Image.ANTIALIAS))
 
         # >-------------------------------------------------------------------------------------------- END Image Config
 
@@ -192,7 +317,7 @@ class App(ctk.CTk):
         self.mic_button = ctk.CTkButton(master=self, text="",
                                            width=5, image=self.off_mic_icon, 
                                            fg_color="#282424", hover_color="gray",
-                                           command=self.call_config)
+                                           command=self.toggle_recording)
         self.mic_button.grid(row=2, column=0)
 
 
