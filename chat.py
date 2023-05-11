@@ -224,15 +224,14 @@ class App(ctk.CTk):
         # Configure the window
         self.title('Chat with Alibabot')
 
-        self.minsize(370, 300)
-        self.maxsize(750, 950)
+        self.minsize(50, 500)
 
         self.grid_rowconfigure((1), weight=1)  # configure grid system
-        self.grid_columnconfigure((0, 1), weight=1)
+        self.grid_columnconfigure((1), weight=1)
 
     # >------------------------------------------------------ END Root Config 
 
-    # Set Values to Audio Things and text color -----------------------<
+    # Set Dedfault Values ----------------------------------------------<
 
         self.mic = 1 # Change the mic
         self.recorder = PvRecorder(device_index=-self.mic, frame_length=512)
@@ -244,40 +243,65 @@ class App(ctk.CTk):
         self.recording = False
 
         self.text_color = 'white'
-    # >---------------------------- END Setting Values to Audio Things
+
+        self.conversa = []
+        self.bot_msg = []
+    # >------------------------------------------- END Setting Dedfault Values
+
+        def new_entry(entry):
+            
+            self.textbox.configure(state="normal") # allow to edit it                        
+            self.textbox.insert("end", entry)
+            self.textbox.configure(state="disabled", text_color=self.text_color) # not allow to edit it
 
         # Perguntas e Respostas Escritas -------------------------------------------------------<
         def resposta():
             #pega o que ta escrito na entrada
             entry_str = self.entry.get()
-            # pega oq ta escrito na textbox
+
+            #saves up the chat for the user side
+            self.conversa.append({"role": "user", "content": entry_str})
+
+            # Request da resposta, passa toda a conversa que já tiveram anteriormente também.
             completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "user", "content": entry_str}
-                ]
+                messages=self.conversa, 
+                stream=True # Passa a mesnagem separadamente.
             )
 
-            bot_msg = str('Alibabot: ' + completion.choices[0].message.content)
-            self.textbox.configure(state="normal") # allow to edit it
-            self.textbox.insert("end", bot_msg + '\n\n')
-            self.textbox.configure(state="disabled", text_color=self.text_color) # not allow to edit it
+            new_entry("\nAlibabot: ")
+
+            # pra cada resposta que for enviada, e pra cada "escolha" do gpt, pega apenas o conteudo que fica em "delta", que é onde ficam os conteudos do bot. 
+            for chunk in completion:
+
+                for choice in chunk.choices:
+                    content = choice['delta'].get('content')
+                    if content is not None:
+
+                        # Append the messege to "bot msg", to save uo for the history later
+                        self.bot_msg.append(content)
+
+                        new_entry(str(content)) # Put the bot text on the textbox  s l o w l y
+
+            #saves the chat of the bot side
+            self.conversa.append({'role': 'assistant', 'content': str(self.bot_msg)})
+
+            #Apaga o que tava na entrada anterior
             self.entry.delete(first_index=0, last_index=len(entry_str))
+            
 
         def pergunta(x):
+
             #pega o que ta escrito na entrada
             entry_str = self.entry.get()
             
             # Monta a mensagem
             user = 'Usuário' + ': '
 
-            self.textbox.configure(state="normal") # not allow to edit it
-            self.textbox.insert("end", f'{user} {entry_str} \n')
+            new_entry(f'\n {user} {entry_str} \n')
 
-            self.textbox.configure(state="disabled", text_color='red') # not allow to edit it
             resposta()
         # >-------------------------------------------------- END Perguntas e Respostas Escritas
-
 
         # Image Config ------------------------------------------------------------------------------------------------<
         # Import Location of the code for images
@@ -295,7 +319,7 @@ class App(ctk.CTk):
 
         # Buttons and Entrys ------------------------------------------------------<
         # Create textbox and shows it
-        self.textbox = ctk.CTkTextbox(master=self, 
+        self.textbox = ctk.CTkTextbox(master=self, state="disabled",
                                       width=400, height=200, corner_radius=0)
         self.textbox.grid(row=1, column=0, 
                           columnspan=3, pady=15, padx=20, sticky="nsew")
@@ -304,18 +328,18 @@ class App(ctk.CTk):
         self.entry = ctk.CTkEntry(master=self, placeholder_text="Fale algo... ",
                                 width=240, corner_radius=10)
         
-        self.entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+        self.entry.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
 
         # Create an button and shows it
         self.send_button = ctk.CTkButton(master=self, text="Send", 
-                                         corner_radius=10, width=15, 
+                                         corner_radius=10, width=150, 
                                          command=lambda: pergunta('x'))
 
-        self.send_button.grid(row=2, column=2, pady=10, padx=10, sticky="ew")
+        self.send_button.grid(row=2, column=2, pady=10, padx=10, sticky="nsew")
 
 
         self.mic_button = ctk.CTkButton(master=self, text="",
-                                           width=5, image=self.off_mic_icon, 
+                                           width=100, image=self.off_mic_icon, 
                                            fg_color="#282424", hover_color="gray",
                                            command=self.toggle_recording)
         self.mic_button.grid(row=2, column=0)
