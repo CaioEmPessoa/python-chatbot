@@ -4,8 +4,9 @@ from pvrecorder import PvRecorder
 import openai
 import os
 #My Code
-import chatAI
+import inicialUI
 import configUI
+import chatAI
 import micSTT
 
 
@@ -82,7 +83,6 @@ class App(ctk.CTk):
     # Root Config ----------------------------------------------------------<
     def __init__(self):
         super().__init__()
-        self.config_window = None
 
         # Modes: system (default), light, dark
         ctk.set_appearance_mode("Dark")
@@ -108,6 +108,9 @@ class App(ctk.CTk):
         self.conversa = []
         self.bot_msg = []
         self.text_color = 'white'
+
+        self.config_window = None
+        self.first_window = None
     # >------------------------------------------- END Setting Dedfault Values        
 
 
@@ -167,6 +170,15 @@ class App(ctk.CTk):
         self.bind('<Return>', lambda event:chatAI.pergunta(self))
         self.bind('<Escape>', App.fechar)
         # >----------------END bind keys
+
+        if self.first_window is None or not self.first_window.winfo_exists():
+            self.first_window = inicialUI.FirstUI(self)  # create window if its None or destroyed
+            self.first_window.grab_set()
+        else:
+            print(inicialUI.FirstUI.send_info.api_key)
+
+        
+
 
 if __name__ == "__main__":
     root = App()
