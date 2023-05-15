@@ -4,12 +4,22 @@ from pvrecorder import PvRecorder
 import openai
 import os
 #My Code
-import chatAI
+import inicialUI
 import configUI
+import chatAI
 import micSTT
 
+# Modes: system (default), light, dark
+ctk.set_appearance_mode("dark")
+# Themes: blue (default), dark-blue, green
+ctk.set_default_color_theme("blue")
 
 openai.api_key = "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"
+
+def start():
+    if __name__ == "__main__":
+        root = App()
+        root.mainloop()
 
 # Criando a janela
 class App(ctk.CTk):
@@ -49,7 +59,8 @@ class App(ctk.CTk):
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Light")
                 # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("dark-blue")
+                ctk.set_default_color_theme("green")
+
                 self.mic_button.configure(fg_color="#ebebeb")
                 self.config_button.configure(fg_color="#ebebeb")
 
@@ -57,9 +68,9 @@ class App(ctk.CTk):
                 self.text_color = 'black'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
-            case "Metal":
-                # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("D:\Área de Trabalho do hd\estudos\programação\python\projetos\Python-ChatGPT\Themes\\dedfault.json")
+                self.destroy()
+
+                start()
 
             case "Escuro (Padrão)":
                 # Modes: system (default), light, dark
@@ -73,6 +84,13 @@ class App(ctk.CTk):
                 self.text_color = 'white'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
+            case "Metal":
+                # Themes: blue (default), dark-blue, green
+                ctk.set_default_color_theme("Themes\\dedfault.json")
+
+                self.destroy()
+                start()
+
     def new_entry(self, entry):
         
         self.textbox.configure(state="normal") # allow to edit it                        
@@ -82,12 +100,6 @@ class App(ctk.CTk):
     # Root Config ----------------------------------------------------------<
     def __init__(self):
         super().__init__()
-        self.config_window = None
-
-        # Modes: system (default), light, dark
-        ctk.set_appearance_mode("Dark")
-        # Themes: blue (default), dark-blue, green
-        ctk.set_default_color_theme("dark-blue")
 
         # Configure the window
         self.title('Chat with Alibabot')
@@ -108,6 +120,15 @@ class App(ctk.CTk):
         self.conversa = []
         self.bot_msg = []
         self.text_color = 'white'
+
+        self.config_window = None
+        self.first_window = None
+
+        self.user = "Usuário"
+        self.api_key = "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"
+
+        openai.api_key = self.api_key
+
     # >------------------------------------------- END Setting Dedfault Values        
 
 
@@ -115,12 +136,18 @@ class App(ctk.CTk):
         # Import Location of the code for images
         self.location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) + "\\img\\"
 
-        # Images of the GUI
-        self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.ANTIALIAS))
+        try:
+            # Images of the GUI
+            self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.ANTIALIAS))
 
-        self.off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+            self.help_icon = ImageTk.PhotoImage(Image.open(self.location + "help.png").resize((30,30), Image.ANTIALIAS))
 
-        self.on_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic_on.png").resize((30,30), Image.ANTIALIAS))
+            self.off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+
+            self.on_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic_on.png").resize((30,30), Image.ANTIALIAS))
+
+        except:
+            print('')
 
         # >-------------------------------------------------------------------------------------------- END Image Config
 
@@ -168,9 +195,13 @@ class App(ctk.CTk):
         self.bind('<Escape>', App.fechar)
         # >----------------END bind keys
 
-if __name__ == "__main__":
-    root = App()
-    root.mainloop()
+        if self.first_window is None or not self.first_window.winfo_exists():
+            self.first_window = inicialUI.FirstUI(self)  # create window if its None or destroyed
+            self.first_window.grab_set()
+        else:
+            print(inicialUI.FirstUI.send_info.api_key)
+
+start()
 
 #clear cache
 try:

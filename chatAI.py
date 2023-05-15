@@ -1,7 +1,8 @@
 import openai
-openai.api_key = "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"
 
 def resposta(app):
+    openai.api_key = app.api_key
+    
     #pega o que ta escrito na entrada
     entry_str = app.entry.get()
 
@@ -36,12 +37,13 @@ def resposta(app):
     app.entry.delete(first_index=0, last_index=len(entry_str))
 
 def pergunta(app):
+    openai.api_key = app.api_key
 
     #pega o que ta escrito na entrada
     entry_str = app.entry.get()
     
     # Monta a mensagem
-    user = 'Usuário' + ': '
+    user = app.user + ': '
 
     app.new_entry(f'\n {user} {entry_str} \n')
 
