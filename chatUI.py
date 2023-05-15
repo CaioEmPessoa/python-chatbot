@@ -125,7 +125,7 @@ class App(ctk.CTk):
         self.first_window = None
 
         self.user = "Usuário"
-        self.api_key = "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"
+        self.api_key = ""
 
         openai.api_key = self.api_key
 
