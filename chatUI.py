@@ -9,13 +9,6 @@ import configUI
 import chatAI
 import micSTT
 
-# Modes: system (default), light, dark
-ctk.set_appearance_mode("dark")
-# Themes: blue (default), dark-blue, green
-ctk.set_default_color_theme("blue")
-
-tema_padrao = "Escuro (Padrão)"
-
 def start():
     if __name__ == "__main__":
         root = App()
@@ -31,6 +24,11 @@ class App(ctk.CTk):
         if self.config_window is None or not self.config_window.winfo_exists():
             self.config_window = configUI.ConfigWindow(self)  # create window if its None or destroyed
             self.config_window.grab_set()
+
+    def restart(self):
+        # Reiniciar a tela e manter as configurações dos botões
+        self.destroy()
+        start()
 
 
     def change_font(self, choice):
@@ -50,19 +48,16 @@ class App(ctk.CTk):
             case "Grande":
                 self.textbox.configure(state="disabled", font=(self.fonte, 30))
 
-    def change_theme(self, choice, time):
+    def change_theme(self, choice):
         self.tema = choice
-        global tema_padrao
 
         match choice:
 
             case "Claro":
-                tema_padrao = "Claro"
-                print("muda")
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Light")
                 # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("blue")
+                ctk.set_default_color_theme("green")
 
                 self.mic_button.configure(fg_color="#ebebeb")
                 self.config_button.configure(fg_color="#ebebeb")
@@ -71,12 +66,9 @@ class App(ctk.CTk):
                 self.text_color = 'black'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
-                if time == 0:
-                    self.destroy()
-                    start()
 
             case "Escuro (Padrão)":
-                tema_padrao = "Escuro (Padrão)"
+
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Dark")
                 # Themes: blue (default), dark-blue, green
@@ -88,10 +80,6 @@ class App(ctk.CTk):
                 self.text_color = 'white'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
-                self.destroy()
-
-                start()
-
             case "Metal":
                 tema_padrao = "Metal"
                 # Themes: blue (default), dark-blue, green
@@ -99,6 +87,8 @@ class App(ctk.CTk):
 
                 self.destroy()
                 start()
+        
+        self.restart()
 
 
     def new_entry(self, entry):
@@ -212,7 +202,6 @@ class App(ctk.CTk):
         else:
             print(inicialUI.FirstUI.send_info.api_key)
 
-        print(tema_padrao)
 
 
 start()
