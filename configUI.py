@@ -30,7 +30,7 @@ class ConfigWindow(ctk.CTkToplevel):
             app.change_font(self.fonte)
 
             # Troca o tema
-            app.change_theme(self.tema)
+            app.change_theme(self.tema, 0)
 
             # Troca o dispositivo
             app.mic = self.device[0]

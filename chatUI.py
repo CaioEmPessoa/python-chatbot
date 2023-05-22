@@ -14,7 +14,7 @@ ctk.set_appearance_mode("dark")
 # Themes: blue (default), dark-blue, green
 ctk.set_default_color_theme("blue")
 
-openai.api_key = "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"
+tema_padrao = "Escuro (Padrão)"
 
 def start():
     if __name__ == "__main__":
@@ -34,8 +34,6 @@ class App(ctk.CTk):
 
 
     def change_font(self, choice):
-
-
         if choice == "on":
             self.fonte = 'Comic Sans MS'
 
@@ -52,31 +50,37 @@ class App(ctk.CTk):
             case "Grande":
                 self.textbox.configure(state="disabled", font=(self.fonte, 30))
 
-    def change_theme(self, choice):
+    def change_theme(self, choice, time):
+        self.tema = choice
+        global tema_padrao
+
         match choice:
 
             case "Claro":
+                tema_padrao = "Claro"
+                print("muda")
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Light")
                 # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("green")
+                ctk.set_default_color_theme("blue")
 
                 self.mic_button.configure(fg_color="#ebebeb")
                 self.config_button.configure(fg_color="#ebebeb")
 
-                # Troca a letra da fonte, pra branca
+                # Troca a letra da fonte, pra preta
                 self.text_color = 'black'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
-                self.destroy()
-
-                start()
+                if time == 0:
+                    self.destroy()
+                    start()
 
             case "Escuro (Padrão)":
+                tema_padrao = "Escuro (Padrão)"
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Dark")
                 # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("dark-blue")
+                ctk.set_default_color_theme("blue")
                 self.mic_button.configure(fg_color="#282424")
                 self.config_button.configure(fg_color="#282424")
 
@@ -84,12 +88,18 @@ class App(ctk.CTk):
                 self.text_color = 'white'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
+                self.destroy()
+
+                start()
+
             case "Metal":
+                tema_padrao = "Metal"
                 # Themes: blue (default), dark-blue, green
                 ctk.set_default_color_theme("Themes\\dedfault.json")
 
                 self.destroy()
                 start()
+
 
     def new_entry(self, entry):
         
@@ -129,8 +139,9 @@ class App(ctk.CTk):
 
         openai.api_key = self.api_key
 
-    # >------------------------------------------- END Setting Dedfault Values        
+        global tema_padrao
 
+    # >------------------------------------------- END Setting Dedfault Values
 
         # Image Config ------------------------------------------------------------------------------------------------<
         # Import Location of the code for images
@@ -201,8 +212,12 @@ class App(ctk.CTk):
         else:
             print(inicialUI.FirstUI.send_info.api_key)
 
+        print(tema_padrao)
+
+
 start()
 
+print('sad')
 #clear cache
 try:
     os.remove("audio.wav")
