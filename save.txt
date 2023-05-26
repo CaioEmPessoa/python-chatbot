@@ -1,1 +1,1 @@
-Metal,off,Grande,dispositivo,#282424,apikey,caioo,
+Claro,off,Grande,dispositivo,#ebebeb,apikey,caioo,
