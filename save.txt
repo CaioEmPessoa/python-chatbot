@@ -1,1 +1,1 @@
-Escuro (Padrão),off,Média,0 - DroidCam Virtual Audio,#282424,
+Metal,off,Grande,dispositivo,#282424,apikey,caioo,

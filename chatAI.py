@@ -43,7 +43,7 @@ def pergunta(app):
     entry_str = app.entry.get()
     
     # Monta a mensagem
-    user = app.user + ': '
+    user = app.config_list[6] + ': '
 
     app.new_entry(f'\n {user} {entry_str} \n')
 

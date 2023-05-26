@@ -8,6 +8,7 @@ import inicialUI
 import configUI
 import chatAI
 import micSTT
+import init
 
 # Criando a janela
 class App(ctk.CTk):
@@ -22,6 +23,12 @@ class App(ctk.CTk):
         root = App()
         root.mainloop()
 
+    def save_config(self):
+        # Escreve essa lista em um arquivo de texto
+        with open('save.txt', 'w') as f:
+            for config in self.config_list:
+                f.write(config + ',')
+
     def call_config(self):
         if self.config_window is None or not self.config_window.winfo_exists():
             self.config_window = configUI.ConfigWindow(self)  # create window if its None or destroyed
@@ -34,7 +41,7 @@ class App(ctk.CTk):
         if choice == "off":
             self.fonte = 'Segoe UI'
 
-        match choice:
+        match choice:   
             case "Pequena":
                 self.textbox.configure(state="disabled", font=(self.fonte, 13))
 
@@ -62,12 +69,9 @@ class App(ctk.CTk):
                 # Escreve na posição 5 da lista de saves a cor BRANCA para o fundo do botao
                 self.config_list[4] = "#ebebeb"
 
-                with open('save.txt', 'w') as f:
-                    for config in self.config_list:
-                        f.write(config + ',')
+                self.save_config()
 
             case "Escuro (Padrão)":
-
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Dark")
                 # Themes: blue (default), dark-blue, green
@@ -79,13 +83,11 @@ class App(ctk.CTk):
                 # Escreve na posição 5 da lista de saves a cor PRETA para o fundo do botao
                 self.config_list[4] = "#282424"
 
-                with open('save.txt', 'w') as f:
-                    for config in self.config_list:
-                        f.write(config + ',')
+                self.save_config()
 
             case "Metal":
-                # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("Themes\\dedfault.json")
+                ctk.set_appearance_mode("Dark")
+                ctk.set_default_color_theme("Themes\\cyan.json")
         
         self.restart()
 
@@ -123,12 +125,10 @@ class App(ctk.CTk):
         self.config_window = None
         self.first_window = None
 
-        self.user = "Usuário"
-        self.api_key = ""
+        # Cria a lista de configurações.
+        self.config_list = ["Escuro (Padrão)", "fonte", "Média", "dispositivo", "#282424", "Usuário", "ApiKey"]
 
-        self.config_list = ["Escuro (Padrão)", "fonte", "Média", "dispositivo", "#282424", self.user, self.api_key]
-
-        openai.api_key = self.api_key
+        openai.api_key = self.config_list[6]
 
         # Read save, if it has one.
         if os.path.isfile('save.txt'):

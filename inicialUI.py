@@ -4,12 +4,14 @@ class FirstUI(ctk.CTkToplevel): # After testing, change to "ctk.CTkToplevel"
 
     def send_info(self, app):
         app.api_key = self.api_entry.get()
-
         app.user = self.user_entry.get()
 
-        app.first_window.destroy()
+        app.config_list[5] = app.api_key
+        app.config_list[6] = app.user
 
-        self.print(self.api_key)
+        app.save_config()
+
+        app.first_window.destroy()
 
     def __init__(self, app):
         super().__init__()
@@ -38,12 +40,12 @@ class FirstUI(ctk.CTkToplevel): # After testing, change to "ctk.CTkToplevel"
         self.confirm_button.grid(row=4, column=0, pady=10, columnspan=2)
 
         self.help_button = ctk.CTkButton(master=self, image=app.help_icon, width=10,
-                                         fg_color="#282424", hover_color="gray", text='')
+                                         fg_color=app.config_list[4], hover_color="gray", text='')
         self.help_button.grid(row=0, column=1, sticky="E")
 
         self.config_button = ctk.CTkButton(master=self, text="", 
                                            width=10, image=app.config_icon, 
-                                           fg_color="#282424", hover_color="gray",
+                                           fg_color=app.config_list[4], hover_color="gray",
                                            command=app.call_config)
 
         self.config_button.grid(row=0, column=0, sticky="W")

@@ -12,8 +12,6 @@ class ConfigWindow(ctk.CTkToplevel):
                 config_save = f.read()
                 config_save = config_save.split(',')
                 app.config_list = [x for x in config_save if x.strip()]
-            
-            print("Last Config: " + str(app.config_list))
 
             self.temas_box.set(app.config_list[0])
             self.font_box.set(app.config_list[2])
@@ -34,10 +32,7 @@ class ConfigWindow(ctk.CTkToplevel):
         app.config_list[0:4] = [self.tema, self.sans, self.fonte, self.device]
         print(app.config_list)
         
-        # Escreve essa lista em um arquivo de texto
-        with open('save.txt', 'w') as f:
-            for config in app.config_list:
-                f.write(config + ',')
+        app.save_config()
 
         # Altera o valor que aparecerá como padrão na proxima
         self.font_box.set(self.fonte)
