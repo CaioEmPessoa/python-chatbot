@@ -1,8 +1,62 @@
 import customtkinter as ctk
 from pvrecorder import PvRecorder
+import os
 
 #janela de config
 class ConfigWindow(ctk.CTkToplevel):
+        
+    # Read save_file
+    def read_save(self, app):
+        if os.path.isfile('save.txt'):
+            with open('save.txt', 'r') as f:
+                config_save = f.read()
+                config_save = config_save.split(',')
+                app.config_list = [x for x in config_save if x.strip()]
+            
+            print("Last Config: " + str(app.config_list))
+
+            self.temas_box.set(app.config_list[0])
+            self.font_box.set(app.config_list[2])
+            self.devices_box.set(app.config_list[3])
+
+    def apply(self, app):
+
+        lambda: self.read_save(app)
+
+        # Pega o valor escolhido nas caixas
+        self.fonte = self.font_box.get()
+        self.sans = self.checkbox.get()
+        self.tema = self.temas_box.get()
+        self.device = self.devices_box.get()
+
+        # Salva os valores escolhidos *na lista*
+        print(app.config_list)
+        app.config_list[0:4] = [self.tema, self.sans, self.fonte, self.device]
+        print(app.config_list)
+        
+        # Escreve essa lista em um arquivo de texto
+        with open('save.txt', 'w') as f:
+            for config in app.config_list:
+                f.write(config + ',')
+
+        # Altera o valor que aparecerá como padrão na proxima
+        self.font_box.set(self.fonte)
+        self.temas_box.set(self.tema)
+
+        # Troca a fonte
+        app.change_font(self.sans)
+        app.change_font(self.fonte)
+
+        # Troca o tema
+        app.change_theme(self.tema)
+
+        # Troca o dispositivo
+        app.mic = self.device[0]
+        app.recorder = PvRecorder(device_index=-int(app.mic), frame_length=512)
+
+        # Fecha a aba de config
+        app.config_window.destroy()
+
     def __init__(self, app):
         super().__init__()
 
@@ -12,33 +66,6 @@ class ConfigWindow(ctk.CTkToplevel):
         self.minsize(300, 300)
         self.maxsize(450, 300)
 
-        def apply():
-
-            # Pega o valor escolhido nas caixas
-            self.fonte = self.font_box.get()
-            self.sans = self.checkbox.get()
-            self.tema = self.temas_box.get()
-            self.device = self.devices_box.get()
-
-            # Altera o valor que aparecerá como padrão na proxima
-            self.font_box.set(self.fonte)
-            self.checkbox.toggle()
-            self.temas_box.set(self.tema)
-
-            # Troca a fonte
-            app.change_font(self.sans)
-            app.change_font(self.fonte)
-
-            # Troca o tema
-            app.change_theme(self.tema)
-
-            # Troca o dispositivo
-            app.mic = self.device[0]
-            app.recorder = PvRecorder(device_index=-int(app.mic), frame_length=512)
-
-
-            # Fecha a aba de config
-            app.config_window.destroy()
 
         mic_list = []
         for mic in PvRecorder.get_audio_devices():
@@ -61,7 +88,7 @@ class ConfigWindow(ctk.CTkToplevel):
         self.devices_label = ctk.CTkLabel(master=self, text="Microfone: ")
         self.devices_label.grid(row=3, column=0, padx=10, sticky="W")
 
-        # Caixas de escolha----- -------------------------------<
+        # Caixas de escolha------------------------------------<
         # Caixa dos temas
         self.temas_box = ctk.CTkOptionMenu(master=self,
                                        values=["Escuro (Padrão)", "Claro", 
@@ -85,5 +112,8 @@ class ConfigWindow(ctk.CTkToplevel):
         
         # >---------------------------------- END CaixasEscolha
 
-        self.apply_button = ctk.CTkButton(master=self, text="Aplicar.", width=5, command=apply)
+        self.apply_button = ctk.CTkButton(master=self, text="Aplicar.", width=5, command=lambda: self.apply(app))
         self.apply_button.grid(row=5, column=1, columnspan=3, sticky="W", pady=10)
+
+        self.read_save(app)
+

@@ -9,27 +9,23 @@ import configUI
 import chatAI
 import micSTT
 
-def start():
-    if __name__ == "__main__":
-        root = App()
-        root.mainloop()
-
 # Criando a janela
 class App(ctk.CTk):
 
     def fechar(self):
-        root.quit()
+        self.destroy()
+
+    def restart(self):
+        # Reiniciar a tela e manter as configurações dos botões
+        self.destroy()
+
+        root = App()
+        root.mainloop()
 
     def call_config(self):
         if self.config_window is None or not self.config_window.winfo_exists():
             self.config_window = configUI.ConfigWindow(self)  # create window if its None or destroyed
             self.config_window.grab_set()
-
-    def restart(self):
-        # Reiniciar a tela e manter as configurações dos botões
-        self.destroy()
-        start()
-
 
     def change_font(self, choice):
         if choice == "on":
@@ -57,15 +53,18 @@ class App(ctk.CTk):
                 # Modes: system (default), light, dark
                 ctk.set_appearance_mode("Light")
                 # Themes: blue (default), dark-blue, green
-                ctk.set_default_color_theme("green")
-
-                self.mic_button.configure(fg_color="#ebebeb")
-                self.config_button.configure(fg_color="#ebebeb")
+                ctk.set_default_color_theme("blue")
 
                 # Troca a letra da fonte, pra preta
                 self.text_color = 'black'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
+                # Escreve na posição 5 da lista de saves a cor BRANCA para o fundo do botao
+                self.config_list[4] = "#ebebeb"
+
+                with open('save.txt', 'w') as f:
+                    for config in self.config_list:
+                        f.write(config + ',')
 
             case "Escuro (Padrão)":
 
@@ -73,20 +72,20 @@ class App(ctk.CTk):
                 ctk.set_appearance_mode("Dark")
                 # Themes: blue (default), dark-blue, green
                 ctk.set_default_color_theme("blue")
-                self.mic_button.configure(fg_color="#282424")
-                self.config_button.configure(fg_color="#282424")
-
                 
                 self.text_color = 'white'
                 self.textbox.configure(state="disabled", text_color=self.text_color)
 
+                # Escreve na posição 5 da lista de saves a cor PRETA para o fundo do botao
+                self.config_list[4] = "#282424"
+
+                with open('save.txt', 'w') as f:
+                    for config in self.config_list:
+                        f.write(config + ',')
+
             case "Metal":
-                tema_padrao = "Metal"
                 # Themes: blue (default), dark-blue, green
                 ctk.set_default_color_theme("Themes\\dedfault.json")
-
-                self.destroy()
-                start()
         
         self.restart()
 
@@ -127,11 +126,18 @@ class App(ctk.CTk):
         self.user = "Usuário"
         self.api_key = ""
 
+        self.config_list = ["Escuro (Padrão)", "fonte", "Média", "dispositivo", "#282424", self.user, self.api_key]
+
         openai.api_key = self.api_key
 
-        global tema_padrao
-
+        # Read save, if it has one.
+        if os.path.isfile('save.txt'):
+            with open('save.txt', 'r') as f:
+                config_save = f.read()
+                config_save = config_save.split(',')
+                self.config_list = [x for x in config_save if x.strip()]
     # >------------------------------------------- END Setting Dedfault Values
+
 
         # Image Config ------------------------------------------------------------------------------------------------<
         # Import Location of the code for images
@@ -139,13 +145,13 @@ class App(ctk.CTk):
 
         try:
             # Images of the GUI
-            self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.ANTIALIAS))
+            self.config_icon = ImageTk.PhotoImage(Image.open(self.location + "config.png").resize((30,30), Image.Resampling.LANCZOS))
 
-            self.help_icon = ImageTk.PhotoImage(Image.open(self.location + "help.png").resize((30,30), Image.ANTIALIAS))
+            self.help_icon = ImageTk.PhotoImage(Image.open(self.location + "help.png").resize((30,30), Image.Resampling.LANCZOS))
 
-            self.off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.ANTIALIAS))
+            self.off_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic.png").resize((30,30), Image.Resampling.LANCZOS))
 
-            self.on_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic_on.png").resize((30,30), Image.ANTIALIAS))
+            self.on_mic_icon = ImageTk.PhotoImage(Image.open(self.location + "mic_on.png").resize((30,30), Image.Resampling.LANCZOS))
 
         except:
             print('')
@@ -176,7 +182,7 @@ class App(ctk.CTk):
 
         self.mic_button = ctk.CTkButton(master=self, text="",
                                            width=100, image=self.off_mic_icon, 
-                                           fg_color="#282424", hover_color="gray",
+                                           fg_color=self.config_list[4], hover_color="gray",
                                            command=lambda: micSTT.toggle_recording(app=self))
         self.mic_button.grid(row=2, column=0)
 
@@ -184,7 +190,7 @@ class App(ctk.CTk):
         # Config Button
         self.config_button = ctk.CTkButton(master=self, text="", 
                                            width=10, image=self.config_icon, 
-                                           fg_color="#282424", hover_color="gray",
+                                           fg_color=self.config_list[4], hover_color="gray",
                                            command=self.call_config)
 
         self.config_button.grid(row=0, column=0, sticky="W")
@@ -203,10 +209,12 @@ class App(ctk.CTk):
             print(inicialUI.FirstUI.send_info.api_key)
 
 
+if __name__ == "__main__":
+    root = App()
+    root.change_theme("Escuro (Padrão)")
 
-start()
+    root.mainloop()
 
-print('sad')
 #clear cache
 try:
     os.remove("audio.wav")
