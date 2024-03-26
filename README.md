@@ -1,5 +1,5 @@
 ## Alibabot App
-This was my first big project with python, and made for a project for school that later changed into a website, that we had put more effor into, you can check it on [this link](https://github.com/PedoroSantos/AlibabotProject)
+This was my first big project with python, and made for a project for school that later changed into a website, that we had put more efford into, you can check it on [this link](https://github.com/PedoroSantos/AlibabotProject)
 
 With all that said, this program uses the openai API to act like their chatbot, but with additional features, like:
 - Voice to text translation
