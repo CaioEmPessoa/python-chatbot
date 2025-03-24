@@ -1,6 +1,6 @@
 Alibabot App
 
-Alibabot was originally my first big project with Python, created for a school assignment. However, the project’s focus changed entirely, leading us to shift away from the chatbot concept and pivot toward developing a website. You can explore the website on [GitHub here](https://github.com/PedoroSantos/AlibabotProject).
+Alibabot was my first big project with Python, created for a school assignment. However, the project’s focus changed entirely, leading us to shift away from the chatbot concept and pivot toward developing a website. You can explore the website on [GitHub here](https://github.com/PedoroSantos/AlibabotProject).
 
 Although the initial idea involved a chatbot using the OpenAI API, the final version of the app includes several interactive features, such as:
 
