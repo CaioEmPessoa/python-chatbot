@@ -1,11 +1,13 @@
-## Alibabot App
-This was my first big project with python, and made for a project for school that later changed into a website, that we had put more efford into, you can check it on [this link](https://github.com/PedoroSantos/AlibabotProject)
+Alibabot App
 
-With all that said, this program uses the openai API to act like their chatbot, but with additional features, like:
-- Voice to text translation
-- Change the color Theme
-- Change the font size
-- Change the font itself
+Alibabot was originally my first big project with Python, created for a school assignment. However, the project’s focus changed entirely, leading us to shift away from the chatbot concept and pivot toward developing a website. You can explore the website on [GitHub here](https://github.com/PedoroSantos/AlibabotProject).
+
+Although the initial idea involved a chatbot using the OpenAI API, the final version of the app includes several interactive features, such as:
+
+- Voice-to-text translation
+- Customizable color themes
+- Adjustable font size
+- Option to change the font style
 
 |Main Window|Config Window (in portuguease)|
 |-|-|
